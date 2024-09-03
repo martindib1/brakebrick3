@@ -1,28 +1,48 @@
-import { Scene } from 'phaser';
+import { Scene } from "phaser";
 
-export class Game extends Scene
-{
-    constructor ()
-    {
-        super('Game');
-    }
+// import class entitities
+import { Paddle } from "../entities/Paddle";
+import { Ball } from "../entities/Ball";
+import { Brick } from "../entities/Brick";
+import { WallBrick } from "../entities/WallBrick";
 
-    create ()
-    {
-        this.cameras.main.setBackgroundColor(0x00ff00);
+export class Game extends Scene {
+  constructor() {
+    super("Game");
+  }
 
-        this.add.image(512, 384, 'background').setAlpha(0.5);
+  create() {
+    // instanciar una nueva paleta.
+    // crea un nuevo objeto
+    // el this, aca, hace referencia a la escena
+    this.ball = new Ball(this, 400, 300, 10, 0xffffff, 1);
+    this.paddle = new Paddle(this, 400, 550, 300, 20, 0xffffff, 1);
+    this.wall = new WallBrick(this);
 
-        this.add.text(512, 384, 'Make something fun!\nand share it with us:\nsupport@phaser.io', {
-            fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff',
-            stroke: '#000000', strokeThickness: 8,
-            align: 'center'
-        }).setOrigin(0.5);
+    // colisiones
+    this.physics.add.collider(this.paddle, this.ball);
 
-        this.input.once('pointerdown', () => {
+    this.physics.add.collider(
+      this.ball,
+      this.wall,
+      (ball, brick) => {
+        brick.hit();
+      },
+      null,
+      this
+    );
 
-            this.scene.start('GameOver');
+    //colision de la pelota con el limite inferior
+    this.physics.world.on("worldbounds", (body, up, down, left, right) => {
+      console.log("worldbounds");
+      if (down) {
+        console.log("hit bottom");
+        this.scene.start("GameOver");
+      }
+    });
+  }
 
-        });
-    }
+  update() {
+    this.paddle.update();
+  }
 }
